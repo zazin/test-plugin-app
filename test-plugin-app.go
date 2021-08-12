@@ -14,8 +14,8 @@ var (
 	port = flag.Int("p", 8081, "port of the service")
 )
 
-type ClientRegisterer interface {
-	Run(context.Context) (http.Handler, error)
+type Greeter interface {
+	Greet(ctx context.Context) (http.Handler, error)
 }
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 
 	// 2. look up a symbol (an exported function or variable)
 	// in this case, variable Greeter
-	symGreeter, err := plug.Lookup("ClientRegisterer")
+	symGreeter, err := plug.Lookup("Greeter")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -39,8 +39,8 @@ func main() {
 
 	// 3. Assert that loaded symbol is of a desired type
 	// in this case interface type Greeter (defined above)
-	var registerer ClientRegisterer
-	registerer, ok := symGreeter.(ClientRegisterer)
+	var greeter Greeter
+	greeter, ok := symGreeter.(Greeter)
 	if !ok {
 		fmt.Println("unexpected type from module symbol")
 		os.Exit(1)
@@ -53,7 +53,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	mux, err := registerer.Run(ctx)
+	mux, err := greeter.Greet(ctx)
 	if err != nil {
 		log.Printf("Setting up the gateway: %s", err.Error())
 		return
